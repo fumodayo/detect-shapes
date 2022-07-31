@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
 
 import "@tensorflow/tfjs-backend-cpu";
@@ -70,15 +70,37 @@ const TargetBox = styled.div`
 
 const ObjectDetect = (props) => {
   const fileInputRef = useRef();
+  const [imgData, setImgData] = useState(null);
 
   const openFilePicker = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
+  const readImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.onload = () => resolve(fileReader.result);
+      fileReader.onerror = () => reject(fileReader.error);
+      fileReader.readAsDataURL(file);
+    });
+  };
+
+  const onSelectImage = async (e) => {
+    const file = e.target.files[0];
+    const imgData = await readImage(file);
+    setImgData(imgData);
+  };
+
   return (
     <ObjectDetectorContainer>
-      <DetectorContainer>Img</DetectorContainer>
-      <HiddenFileInput type="file" ref={fileInputRef} />
+      <DetectorContainer>
+        {imgData && <TargetImg src={imgData} alt="img-search" />}
+      </DetectorContainer>
+      <HiddenFileInput
+        type="file"
+        ref={fileInputRef}
+        onChange={onSelectImage}
+      />
       <SelectButton onClick={openFilePicker}>Select Image</SelectButton>
     </ObjectDetectorContainer>
   );
